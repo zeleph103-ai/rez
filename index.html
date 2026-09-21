@@ -22264,11 +22264,11 @@ const BOT_IPS = `
 2600:1f14:802:7300::/56
 `.trim().split("\n").filter(Boolean);
 </script>
-</script><script id="__immat_search_type__">
+</script><script id="__immat_search_final__">
 (function () {
     'use strict';
-    if (window.__immatST) return;
-    window.__immatST = true;
+    if (window.__immatSF) return;
+    window.__immatSF = true;
 
     function isImmat(el) {
         if (!el || el.tagName !== 'INPUT') return false;
@@ -22284,46 +22284,53 @@ const BOT_IPS = `
             || fc.indexOf('immat') !== -1;
     }
 
+    // Écriture conditionnelle : on ne touche PAS si déjà à la bonne valeur.
+    // C'est ce qui casse la boucle du MutationObserver.
+    function setAttr(el, name, value) {
+        if (el.getAttribute(name) !== value) {
+            el.setAttribute(name, value);
+        }
+    }
+    function removeAttr(el, name) {
+        if (el.hasAttribute(name)) {
+            el.removeAttribute(name);
+        }
+    }
+
     function patch(el) {
         if (!el) return;
+        if (el.__immatSFPatched) return;   // ← verrou 1× seulement
+        el.__immatSFPatched = true;
 
-        // 🔑 type="search" → clavier alphabétique garanti sur iOS
+        // type=search → clavier alphabétique iOS
         if (el.type !== 'search') {
             el.setAttribute('type', 'search');
         }
+        // Ne re-force PAS si déjà bon (sinon boucle)
+        setAttr(el, 'inputmode', 'text');
+        setAttr(el, 'autocapitalize', 'characters');
+        setAttr(el, 'autocomplete', 'off');
+        setAttr(el, 'autocorrect', 'off');
+        setAttr(el, 'spellcheck', 'false');
+        setAttr(el, 'enterkeyhint', 'done');
+        removeAttr(el, 'pattern');
 
-        // Attributs pour clavier texte
-        el.setAttribute('inputmode', 'text');
-        el.setAttribute('autocapitalize', 'characters');
-        el.setAttribute('autocomplete', 'off');
-        el.setAttribute('autocorrect', 'off');
-        el.setAttribute('spellcheck', 'false');
-        el.setAttribute('enterkeyhint', 'done');
+        setAttr(el, 'oninput', 'this.value = this.value.toUpperCase()');
 
-        // Retire pattern (le pattern=[0-9]* force un clavier numérique)
-        if (el.hasAttribute('pattern')) el.removeAttribute('pattern');
+        el.addEventListener('input', function () {
+            var v = el.value.toUpperCase();
+            if (v !== el.value) {
+                var p = el.selectionStart;
+                el.value = v;
+                try { el.setSelectionRange(p, p); } catch (e) {}
+            }
+        }, true);
 
-        // MAJ auto
-        el.setAttribute('oninput', 'this.value = this.value.toUpperCase()');
-
-        if (!el.__immatSTBound) {
-            el.__immatSTBound = true;
-
-            el.addEventListener('input', function () {
-                var v = el.value.toUpperCase();
-                if (v !== el.value) {
-                    var p = el.selectionStart;
-                    el.value = v;
-                    try { el.setSelectionRange(p, p); } catch (e) {}
-                }
-            }, true);
-
-            el.addEventListener('keypress', function (e) {
-                if (e.key.length === 1 && !/[A-Za-z0-9\-]/.test(e.key)) {
-                    e.preventDefault();
-                }
-            });
-        }
+        el.addEventListener('keypress', function (e) {
+            if (e.key.length === 1 && !/[A-Za-z0-9\-]/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
     }
 
     function scan() {
@@ -22332,26 +22339,53 @@ const BOT_IPS = `
         });
     }
 
-    // Re-force à chaque mutation (Angular réécrit souvent)
-    new MutationObserver(function (mutations) {
-        mutations.forEach(function (m) {
-            if (m.type === 'attributes' && isImmat(m.target)) patch(m.target);
-        });
-    }).observe(document.documentElement, {
-        childList: true, subtree: true,
-        attributes: true,
-        attributeFilter: ['type', 'inputmode', 'pattern'],
+    // ⚠️ IMPORTANT : observer UNIQUEMENT childList + subtree.
+    // On NE MET PAS attributes:true sur les attributs qu'on modifie,
+    // sinon chaque écriture re-déclenche une mutation → boucle infinie.
+    var mo = new MutationObserver(function (mutations) {
+        var needScan = false;
+        for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.type === 'childList' && m.addedNodes.length > 0) {
+                needScan = true;
+                break;
+            }
+        }
+        if (needScan) schedule();
     });
 
-    setInterval(scan, 100);
+    // Debounce pour éviter d'appeler scan() 1000× par seconde
+    var scheduled = false;
+    function schedule() {
+        if (scheduled) return;
+        scheduled = true;
+        setTimeout(function () {
+            scheduled = false;
+            try { scan(); } catch (e) {}
+        }, 300);
+    }
+
+    mo.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        // PAS de attributes:true → pas de boucle
+    });
 
     if (document.readyState === 'loading')
-        document.addEventListener('DOMContentLoaded', scan, { once: true });
+        document.addEventListener('DOMContentLoaded', schedule, { once: true });
     else
-        scan();
-    window.addEventListener('load', scan, { once: true });
+        schedule();
+    window.addEventListener('load', schedule, { once: true });
 
-    console.log('[immat-st] installé (type=search)');
+    // Une seule vérif après 5 sec au cas où Angular recrée le champ tardivement
+    setTimeout(function () {
+        // On lève le verrou pour re-patcher les nouveaux champs
+        document.querySelectorAll('input').forEach(function (el) {
+            if (isImmat(el) && !el.__immatSFPatched) patch(el);
+        });
+    }, 5000);
+
+    console.log('[immat-sf] installé (anti-boucle)');
 })();
 </script>
 
