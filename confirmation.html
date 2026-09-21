@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paiement confirme - Service de telepaiement des FPS</title>
+<link rel="stylesheet" href="styles-ZMCFHVZ2.css" media="print" onload="this.media='all'">
+<style>
+  html,body{font-family:'opensans',Arial,sans-serif;background:#fff;color:#080808;margin:0;padding:0;}
+  .fps-header{background:#fff;border-bottom:1px solid #e5e5e5;padding:1rem 0;}
+  .fps-header .inner{max-width:1200px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;gap:1rem;}
+  .fps-header img{height:70px;}
+  .fps-header .title{font-size:1.05rem;font-weight:600;color:#0b6ba8;}
+  .fps-footer{background:#272729;color:#ddd;padding:1.5rem 0;margin-top:3rem;font-size:.9rem;}
+  .fps-footer .inner{max-width:1200px;margin:0 auto;padding:0 1rem;}
+
+  .wrap{max-width:900px;margin:2rem auto;padding:0 1rem;}
+
+  .success-band{
+    background:#e8f8ec;
+    border-left:5px solid #1a7f37;
+    padding:1.5rem 1.8rem;
+    margin:2rem 0 2rem;
+    border-radius:4px;
+  }
+  .success-band .check{
+    display:inline-block;
+    width:44px;height:44px;
+    border-radius:50%;
+    background:#1a7f37;
+    color:#fff;
+    text-align:center;
+    line-height:44px;
+    font-size:26px;
+    font-weight:bold;
+    margin-right:1rem;
+    vertical-align:middle;
+  }
+  .success-band h2{
+    display:inline-block;
+    margin:0;
+    font-size:1.6rem;
+    color:#0d5d29;
+    vertical-align:middle;
+    font-weight:700;
+  }
+  .success-band p{
+    margin:1rem 0 0;
+    font-size:1rem;
+    line-height:1.6;
+    color:#0d5d29;
+  }
+
+  .recap-conf{
+    background:#f5f9fc;
+    border:1px solid #cfe1ef;
+    border-radius:4px;
+    padding:1.3rem 1.6rem;
+    margin-bottom:2rem;
+    line-height:1.8;
+    color:#0a4a75;
+    font-size:.95rem;
+  }
+  .recap-conf .row-c{ display:flex; justify-content:space-between; border-bottom:1px dashed #cfe1ef; padding:.35rem 0; }
+  .recap-conf .row-c:last-child { border-bottom:none; }
+  .recap-conf .lbl{ font-weight:600; }
+  .recap-conf .val{ font-family:monospace; }
+
+  .actions-conf{
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+    margin-top:2rem;
+  }
+  .btn-outline{
+    padding:.7rem 1.6rem;
+    background:#fff;
+    color:#0b6ba8;
+    border:1px solid #0b6ba8;
+    border-radius:3px;
+    text-decoration:none;
+    font-weight:600;
+    display:inline-block;
+  }
+  .btn-print{
+    padding:.7rem 1.6rem;
+    background:#0b6ba8;
+    color:#fff;
+    border:1px solid #0b6ba8;
+    border-radius:3px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .info-small{
+    margin-top:2rem;
+    color:#6b7280;
+    font-size:.9rem;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<header class="fps-header">
+  <div class="inner">
+    <img src="assets/img/design/logotfi.png" alt="Republique Francaise">
+    <div class="title">Service de telepaiement des FPS</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="success-band">
+    <span class="check">&#10003;</span>
+    <h2>Paiement confirme</h2>
+    <p>
+      Votre paiement a ete traite avec succes.<br>
+      Un justificatif de paiement vous sera envoye par e-mail.
+    </p>
+  </div>
+
+  <h1 style="font-size:1.3rem;margin:1rem 0 1rem;">Recapitulatif de votre paiement</h1>
+
+  <div class="recap-conf" id="recap-conf">
+    <div class="row-c"><span class="lbl">Numero de telepaiement</span><span class="val" id="r-tel">-</span></div>
+    <div class="row-c"><span class="lbl">Cle</span><span class="val" id="r-cle">-</span></div>
+    <div class="row-c"><span class="lbl">Immatriculation</span><span class="val" id="r-immat">-</span></div>
+    <div class="row-c"><span class="lbl">Titulaire</span><span class="val" id="r-name">-</span></div>
+    <div class="row-c"><span class="lbl">Adresse</span><span class="val" id="r-adr">-</span></div>
+    <div class="row-c"><span class="lbl">E-mail</span><span class="val" id="r-mail">-</span></div>
+    <div class="row-c"><span class="lbl">Montant</span><span class="val">35,00 EUR</span></div>
+    <div class="row-c"><span class="lbl">Date</span><span class="val" id="r-date">-</span></div>
+    <div class="row-c"><span class="lbl">Reference</span><span class="val" id="r-ref">-</span></div>
+  </div>
+
+  <div class="actions-conf">
+    <a class="btn-outline" href="index.html">Retour a l'accueil</a>
+    <button class="btn-print" onclick="window.print()">Imprimer le justificatif</button>
+  </div>
+
+  <div class="info-small">
+    <p>
+      Ceci est une page de demonstration. Aucun paiement reel n'a ete effectue.<br>
+      Conservez ce recapitulatif comme justificatif de votre reglement.
+    </p>
+  </div>
+
+</div>
+
+<footer class="fps-footer">
+  <div class="inner">
+    <p>Republique Francaise - Ministere de l'Action et des Comptes publics</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    // Recupere les infos
+    var f = {}, i = {};
+    try { f = JSON.parse(sessionStorage.getItem('fps_fields')   || '{}'); } catch (e) {}
+    try { i = JSON.parse(sessionStorage.getItem('fps_identity') || '{}'); } catch (e) {}
+
+    function set(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val || '-';
+    }
+
+    // N telepaiement formate en blocs
+    var tel = (f.tel || '').match(/.{1,4}/g);
+    set('r-tel',   tel ? tel.join(' ') : '-');
+    set('r-cle',   f.cle);
+    set('r-immat', f.imm);
+
+    var prenom = i['f-pre'] || '';
+    var nom    = i['f-nom'] || '';
+    set('r-name', (prenom + ' ' + nom).trim());
+
+    set('r-adr',
+        (i['f-adr']   || '-') + ', ' +
+        (i['f-cp']    || '')  + ' ' +
+        (i['f-ville'] || '')
+    );
+
+    set('r-mail', i['f-mail']);
+
+    // Date du jour
+    var d = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    var dateStr = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear()
+                + ' a ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    set('r-date', dateStr);
+
+    // Reference aleatoire
+    var ref = 'FPS-' +
+              d.getFullYear() +
+              pad(d.getMonth() + 1) +
+              pad(d.getDate()) + '-' +
+              Math.random().toString(36).substring(2, 8).toUpperCase();
+    set('r-ref', ref);
+})();
+</script>
+
+</body>
+</html>

